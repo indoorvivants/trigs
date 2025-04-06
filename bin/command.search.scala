@@ -1,5 +1,8 @@
 package trigs
 
+import cue4s.AnsiTerminal
+import cue4s.Output
+
 def commandSearch(cli: CLIConfig.Search) =
 
   val indexer    = TrigramIndexer()
@@ -49,7 +52,9 @@ def commandSearch(cli: CLIConfig.Search) =
         val str = prompts.text("query").getOrThrow
         exit = str.equalsIgnoreCase(":exit")
 
-        if !exit then printResults(str)
+        if !exit then
+          AnsiTerminal(Output.Std).screenClear()
+          printResults(str)
         end if
 
       end while

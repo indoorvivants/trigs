@@ -1,79 +1,91 @@
 package trigs
 import java.nio.ByteBuffer
 object TrigramIndexSerialiser:
-  def serialise(nice: Map[Trigram, Set[Location]])(using
+  def serialise(nice: TrigramIndex)(using
       Progress
   ): Array[Byte] =
-    // val sorted = nice.toList.sortBy(_._1)
     progress.info("building locations index")
     val locationsIndex =
       val builder = collection.mutable.Map.empty[Location, Int]
-      nice.valuesIterator
-        .flatMap(_.toIterator)
-        .foreach: loc =>
-          builder.getOrElseUpdate(loc, builder.size)
+      nice.locs.values
+        .foreach: locs =>
+          locs.foreach: loc =>
+            builder.getOrElseUpdate(loc, builder.size)
       builder.toMap
     end locationsIndex
 
     progress.info("building trigrams ids index")
     val trigramIds =
       val builder = collection.mutable.Map.empty[Trigram, Int]
-      nice.keysIterator.foreach: trigram =>
+      nice.locs.keysIterator.foreach: trigram =>
         builder.getOrElseUpdate(trigram, builder.size)
       builder.toMap
     end trigramIds
 
     progress.info("calculating locations index size estimate")
-    val locationsIndexSizeEstimate = locationsIndex.map { (loc, _) =>
-      val fileNameSize        = loc.file.toString.getBytes().length
-      val fileNameFieldLength = sizeOf[Int] // Int?
-      val idLength            = sizeOf[Int]
-      val lineLength          = sizeOf[Int]
-      fileNameSize + fileNameFieldLength + idLength + lineLength
-    }.sum
 
-    val locationCountSize = sizeOf[Int]
+    val trigramSize = sizeOf[Int] + // id
+      3 * sizeOf[Char] // trigram itself
 
-    val trigramsSizeEstimate = trigramIds
-      .map: _ =>
-        2 * 3 + 4 + 4
-      .sum
+    val trigramsStorageSize = sizeOf[Int] + // count
+      trigramSize * trigramIds.size
 
-    val trigramCountSize = sizeOf[Int]
+    val locationStorageSize =
+      def locationSize(loc: Location) =
+        sizeOf[Int] +   // id
+          sizeOf[Int] + // line
+          sizeOf[Int] + // length of file name
+          loc.file.toString.getBytes().length
 
-    val indexSizeEstimate =
-      nice.map((_, locs) => 4 + 4 + locs.size * sizeOf[Int]).sum
+      sizeOf[Int] + // count
+        locationsIndex.keys.toList.map(locationSize).sum
+    end locationStorageSize
 
-    progress.info("allocating buffer for serialised index")
+    val indexStorageSize = sizeOf[Int] + // count
+      nice.locs.values
+        .map: locs =>
+          sizeOf[Int] +               // trigram id
+            sizeOf[Int] +             // number of locations
+            (locs.size * sizeOf[Int]) // location ids
+        .sum
+
+    progress.info(
+      s"allocating buffer for serialised index ($locationStorageSize for locations, $indexStorageSize for index, $trigramsStorageSize for trigrams)"
+    )
     val b = ByteBuffer.allocate(
-      locationCountSize + locationsIndexSizeEstimate + trigramCountSize + trigramsSizeEstimate + indexSizeEstimate
+      locationStorageSize +
+        trigramsStorageSize +
+        indexStorageSize
     )
 
-    b.putInt(locationsIndex.size)
-
     progress.info(s"writing locations index (${locationsIndex.size} entries)")
+    b.putInt(locationsIndex.size)
     locationsIndex.foreach: (location, id) =>
-      val loc = location.file.toString
+      val loc      = location.file.toString
+      val locBytes = loc.getBytes()
       b.putInt(id)
       b.putInt(location.line)
-      b.putInt(loc.length)
-      b.put(loc.getBytes())
+      b.putInt(locBytes.length)
+      b.put(locBytes)
 
-    b.putInt(trigramIds.size)
+    assert(
+      b.position == locationStorageSize,
+      s"expected: $locationStorageSize, actual: ${b.position}"
+    )
 
     progress.info(s"writing trigrams index (${trigramIds.size} entries)")
+    b.putInt(trigramIds.size)
     trigramIds.foreach: (trigram, id) =>
       b.putInt(id)
       b.putChar(trigram._1)
       b.putChar(trigram._2)
       b.putChar(trigram._3)
 
-    b.putInt(nice.size)
-
     progress.info(
-      s"writing [trigram -> set of locations] mapping (${nice.size} entries)"
+      s"writing [trigram -> set of locations] mapping (${nice.locs.size} entries)"
     )
-    nice.foreach: (trigram, locations) =>
+    b.putInt(nice.locs.size)
+    nice.locs.foreach: (trigram, locations) =>
       b.putInt(trigramIds(trigram))
       b.putInt(locations.size)
       locations.foreach: loc =>

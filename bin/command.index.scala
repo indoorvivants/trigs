@@ -3,10 +3,9 @@ import collection.mutable.Builder
 import cue4s.*
 
 def commandIndex(cli: CLIConfig.Index) =
-  val acc = collection.mutable.Map
-    .empty[Trigram, Builder[Location, Set[Location]]]
 
   val indexer = TrigramIndexer()
+  val builder = TrigramIndexMutableBuilder.empty
 
   val ext = cli.extensions.split(",").toSet
 
@@ -22,9 +21,7 @@ def commandIndex(cli: CLIConfig.Index) =
       if str.length > 50 then progress.info("..." + str.takeRight(50))
       else progress.info(str)
 
-      file.foreach: entry =>
-        entry.tokens.foreach: tok =>
-          acc.getOrElseUpdate(tok, Set.newBuilder).addOne(entry.location)
+      file.foreach(builder.addEntry)
     end if
   end indexFile
 
@@ -48,7 +45,7 @@ def commandIndex(cli: CLIConfig.Index) =
 
   progress.info("Accumulating....")
 
-  val fin = acc.map((tg, loc) => tg -> loc.result()).toMap
+  val fin = builder.toIndex
 
   progress.info("Serialising....")
   val b = TrigramIndexSerialiser.serialise(fin)
