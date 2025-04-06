@@ -2,11 +2,11 @@ package trigs
 
 case class Location(file: os.Path, line: Int)
 
-case class IndexEntry(tokens: Array[TRIGRAM], location: Location):
+case class IndexFileEntry(tokens: Array[Trigram], location: Location):
   def render =
     s"IndexEntry(tokens = ${tokens.mkString("[", ", ", "]")})"
 
-  def jaccardSimilarity(other: IndexEntry): Float =
+  def jaccardSimilarity(other: IndexFileEntry): Float =
     var shared     = 0
     var dissimilar = 0
 
@@ -38,4 +38,4 @@ case class IndexEntry(tokens: Array[TRIGRAM], location: Location):
     (shared.toFloat) / (shared.toFloat + dissimilar.toFloat)
 
   end jaccardSimilarity
-end IndexEntry
+end IndexFileEntry

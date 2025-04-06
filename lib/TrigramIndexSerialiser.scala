@@ -1,7 +1,7 @@
 package trigs
 import java.nio.ByteBuffer
 object TrigramIndexSerialiser:
-  def serialise(nice: Map[TRIGRAM, Set[Location]])(using
+  def serialise(nice: Map[Trigram, Set[Location]])(using
       Progress
   ): Array[Byte] =
     // val sorted = nice.toList.sortBy(_._1)
@@ -17,7 +17,7 @@ object TrigramIndexSerialiser:
 
     progress.info("building trigrams ids index")
     val trigramIds =
-      val builder = collection.mutable.Map.empty[TRIGRAM, Int]
+      val builder = collection.mutable.Map.empty[Trigram, Int]
       nice.keysIterator.foreach: trigram =>
         builder.getOrElseUpdate(trigram, builder.size)
       builder.toMap

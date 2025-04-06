@@ -4,7 +4,7 @@ import cue4s.*
 
 def commandIndex(cli: CLIConfig.Index) =
   val acc = collection.mutable.Map
-    .empty[TRIGRAM, Builder[Location, Set[Location]]]
+    .empty[Trigram, Builder[Location, Set[Location]]]
 
   val indexer = TrigramIndexer()
 

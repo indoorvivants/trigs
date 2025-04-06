@@ -1,16 +1,16 @@
 package trigs
 class TrigramIndexer:
-  def index(s: String): Array[TRIGRAM] =
+  def index(s: String): Array[Trigram] =
     val length = s.length()
-    if length == 0 then Array.empty[TRIGRAM]
-    else if length == 1 then Array(TRIGRAM(' ', ' ', s(0)))
+    if length == 0 then Array.empty[Trigram]
+    else if length == 1 then Array(Trigram(' ', ' ', s(0)))
     else if length == 2 then
       Array(
-        TRIGRAM(' ', ' ', s(0)),
-        TRIGRAM(' ', s(0), s(1))
+        Trigram(' ', ' ', s(0)),
+        Trigram(' ', s(0), s(1))
       )
     else
-      val all = Array.newBuilder[TRIGRAM]
+      val all = Array.newBuilder[Trigram]
 
       var i = 0
 
@@ -20,7 +20,7 @@ class TrigramIndexer:
         val last = s(i + 2).toLower
 
         if char.isLetterOrDigit && next.isLetterOrDigit && last.isLetterOrDigit
-        then all += TRIGRAM(char, next, last)
+        then all += Trigram(char, next, last)
 
         i += 1
 
@@ -30,8 +30,8 @@ class TrigramIndexer:
     end if
   end index
 
-  def indexFile(file: os.Path)(using Progress): Array[IndexEntry] =
-    val entries = Array.newBuilder[IndexEntry]
+  def indexFile(file: os.Path)(using Progress): Array[IndexFileEntry] =
+    val entries = Array.newBuilder[IndexFileEntry]
 
     os.read.lines
       .stream(file)
@@ -43,7 +43,7 @@ class TrigramIndexer:
           progress.debug(
             s"${file.relativeTo(os.pwd)}:$idx   ${tokens.distinct.mkString(", ")}"
           )
-          entries += IndexEntry(
+          entries += IndexFileEntry(
             tokens,
             Location(file, idx + 1)
           )

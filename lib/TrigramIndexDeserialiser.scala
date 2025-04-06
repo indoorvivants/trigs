@@ -2,7 +2,9 @@ package trigs
 import java.io.DataInputStream
 import java.io.BufferedInputStream
 object TrigramIndexDeserialiser:
-  def deserialise(bytes: java.io.InputStream)(using Progress): TrigramIndex =
+  def deserialiseIntoBuilder(bytes: java.io.InputStream)(using
+      Progress
+  ): TrigramIndexMutableBuilder =
     val ds = DataInputStream(BufferedInputStream(bytes))
 
     val numLocationEntries = ds.readInt()
@@ -23,20 +25,20 @@ object TrigramIndexDeserialiser:
 
     progress.info("reading trigrams index")
     val numTrigrams     = ds.readInt()
-    val trigramsBuilder = Map.newBuilder[Int, TRIGRAM]
+    val trigramsBuilder = Map.newBuilder[Int, Trigram]
     for _ <- 0 until numTrigrams do
       val id      = ds.readInt()
       val c1      = ds.readChar()
       val c2      = ds.readChar()
       val c3      = ds.readChar()
-      val trigram = TRIGRAM(c1, c2, c3)
+      val trigram = Trigram(c1, c2, c3)
 
       trigramsBuilder += id -> trigram
     end for
 
     val trigrams = trigramsBuilder.result()
 
-    val indexBuilder   = Map.newBuilder[TRIGRAM, Set[Location]]
+    val indexBuilder   = Map.newBuilder[Int, Set[Int]]
     val numOccurrences = ds.readInt()
     progress.info("reading occurrences index")
     for _ <- 0 until numOccurrences do
@@ -44,10 +46,15 @@ object TrigramIndexDeserialiser:
       val cnt    = ds.readInt()
       val locIds = Set.tabulate(cnt)(_ => ds.readInt())
 
-      indexBuilder += trigrams(id) -> locIds.map(locationIndex.apply)
+      // indexBuilder += trigrams(id) -> locIds.map(locationIndex.apply)
+      indexBuilder += id -> locIds
     end for
 
     progress.info("building final index")
-    TrigramIndex(indexBuilder.result())
-  end deserialise
+    TrigramIndexMutableBuilder.from(
+      trigrams,
+      locationIndex,
+      indexBuilder.result()
+    )
+  end deserialiseIntoBuilder
 end TrigramIndexDeserialiser
