@@ -14,7 +14,7 @@ class TrigramIndexSerialiserTest extends munit.FunSuite:
         .toIndex
     assertEquals(emptyIndex, deserialised)
   }
-  test("non empty".only) {
+  test("non empty") {
     val indexBuilder = TrigramIndexMutableBuilder.empty
 
     indexBuilder.addOccurrence(trigram"hel", loc("/a/b"))
