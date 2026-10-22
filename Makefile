@@ -13,7 +13,7 @@ LTO_TYPE = $(shell bash -c "cat .build.scala | scala-cli run _ -M ltoFlag")
 BINARY_NAME = "trigs"
 
 debug-bin: out/debug
-	scala-cli package . -f -o out/debug/$(BINARY_NAME)
+	scala-cli package . -f -o out/debug/$(BINARY_NAME) --native
 
 watch:
 	scala-cli package -w . -f -o out/debug/$(BINARY_NAME)
@@ -27,7 +27,7 @@ out/flags/platform:
 	cat .build.scala | scala-cli run _ -M coursierName > out/flags/platform
 
 bin: out/release out/flags/lto
-	scala-cli package . -f -o out/release/$(BINARY_NAME) --native-mode release-fast $(LTO_TYPE)
+	scala-cli package . -f -o out/release/$(BINARY_NAME) --native-mode release-fast $(LTO_TYPE) --native
 
 platform-bin: out/release out/flags/platform out/flags/lto
 	scala-cli package . -f -o out/release/$(BINARY_NAME)-$$(cat out/flags/platform) --native-mode release-fast $$(cat out/flags/lto)

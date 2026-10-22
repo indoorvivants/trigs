@@ -10,6 +10,6 @@ private def sizeOfMacro[T: Type](using Quotes): Expr[Int] =
     case '[Int]  => '{ 4 }
     case '[Char] => '{ 2 }
     case '[Byte] => '{ 1 }
-    case other =>
+    case _   =>
       errorAndAbort(s"Cannot figure out the size of ${TypeRepr.of[T].show}")
 end sizeOfMacro
