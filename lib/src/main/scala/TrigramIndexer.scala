@@ -1,4 +1,5 @@
 package trigs
+
 class TrigramIndexer:
   def index(s: String): Array[Trigram] =
     val length = s.length()
@@ -29,27 +30,6 @@ class TrigramIndexer:
       all.result().sorted
     end if
   end index
-
-  def indexFile(file: os.Path)(using Progress): Array[IndexFileEntry] =
-    val entries = Array.newBuilder[IndexFileEntry]
-
-    os.read.lines
-      .stream(file)
-      .zipWithIndex
-      .foreach: (line, idx) =>
-        val tokens = index(line)
-
-        if tokens.nonEmpty then
-          progress.debug(
-            s"${file.relativeTo(os.pwd)}:$idx   ${tokens.distinct.mkString(", ")}"
-          )
-          entries += IndexFileEntry(
-            tokens,
-            Location(file, idx + 1)
-          )
-        end if
-    entries.result()
-  end indexFile
 end TrigramIndexer
 
 object TrigramIndexer
