@@ -1,9 +1,9 @@
 package trigs
 
 case class RankingConfig(
-    /** How much a line's length (in distinct trigrams) affects its score,
-      * 0..1. At 0 only (IDF-weighted) query coverage matters, at 1 a line twice
-      * as long as the query scores half as much.
+    /** How much a line's length (in distinct trigrams) affects its score, 0..1.
+      * At 0 only (IDF-weighted) query coverage matters, at 1 a line twice as
+      * long as the query scores half as much.
       */
     lengthWeight: Float = 0.25f,
 

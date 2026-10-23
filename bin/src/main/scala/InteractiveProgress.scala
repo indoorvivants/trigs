@@ -8,13 +8,14 @@ class InteractiveProgress(
     terminal: Terminal,
     out: Output,
     debug: Boolean = false
-) extends AutoCloseable,Progress:
+) extends AutoCloseable,
+      Progress:
   override def debug(msg: => String): Unit =
     if debug then out.outLn(fansi.Color.White(msg))
 
   override def error(msg: String): Unit =
     out.outLn(fansi.Color.Red(fansi.Bold.On(msg)))
-      
+
   override def warn(msg: String): Unit =
     out.outLn(fansi.Color.Yellow(fansi.Bold.On(msg)))
 

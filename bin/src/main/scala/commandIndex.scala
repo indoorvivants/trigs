@@ -1,20 +1,21 @@
 package trigs
 
-import cue4s.*
-
 def commandIndex(cli: CLIConfig.Index) =
 
   given Progress =
     if cli.quiet then Progress.Quiet
     else
-      Progress.Printer.setMinLevel(Level.Info) // InteractiveProgress(AnsiTerminal(Output.Std), Output.Std, cli.verbose)
+      Progress.Printer.setMinLevel(
+        Level.Info
+      ) // InteractiveProgress(AnsiTerminal(Output.Std), Output.Std, cli.verbose)
 
   val ext = cli.extensions.split(",").toSet
 
   val builder = IndexBuilder[os.Path](
     parallelism = Runtime.getRuntime.availableProcessors,
     onIndexed = path => progress.info(s"FINISHED: $path"),
-    onError = Some((path, exc) => progress.error(s"Failed to index $path: $exc", exc))
+    onError =
+      Some((path, exc) => progress.error(s"Failed to index $path: $exc", exc))
   )
 
   def enqueue(path: os.Path): Unit =

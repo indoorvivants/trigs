@@ -1,13 +1,14 @@
 package trigs
 
-import java.io.ByteArrayInputStream
-import java.io.InputStream
-import java.io.InputStreamReader
-import java.io.Reader
-import java.io.StringReader
+import java.io.{
+  ByteArrayInputStream,
+  InputStream,
+  InputStreamReader,
+  Reader,
+  StringReader
+}
 import java.nio.charset.StandardCharsets.UTF_8
-import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.{ConcurrentLinkedQueue, LinkedBlockingQueue}
 import scala.collection.mutable
 import scala.util.control.NonFatal
 
@@ -15,8 +16,8 @@ import scala.util.control.NonFatal
   * indexed separately, so search hits point at lines.
   *
   * For any id, the last `add` or `remove` call wins, regardless of
-  * `parallelism`. The builder itself isn't thread-safe: call it from one
-  * thread at a time.
+  * `parallelism`. The builder itself isn't thread-safe: call it from one thread
+  * at a time.
   *
   * @param parallelism
   *   with more than 1, documents are indexed on that many daemon worker
@@ -105,7 +106,8 @@ final class IndexBuilder[Id](
     pool.foreach(finished ++= _.shutdown())
     pool = None
 
-    val failed = Iterator.continually(failures.poll()).takeWhile(_ != null).toList
+    val failed =
+      Iterator.continually(failures.poll()).takeWhile(_ != null).toList
     if failed.nonEmpty then throw IndexingFailedException(failed)
 
     val segments =
@@ -129,7 +131,9 @@ final class IndexBuilder[Id](
       latest(id) == seq &&
       removedAt.get(id).forall(_ < seq)
 
-    TrigramIndex.compact(segments.map(segment => segment.index -> keep(segment)))
+    TrigramIndex.compact(
+      segments.map(segment => segment.index -> keep(segment))
+    )
   end result
 
   private def takeSeq(): Long =
@@ -147,8 +151,10 @@ final class IndexBuilder[Id](
   private def process(segment: SegmentBuilder[Id], task: Task[Id]): Unit =
     try
       task.source match
-        case Source.Text(text)   => segment.add(task.id, task.seq, StringReader(text))
-        case Source.Bytes(bytes) => segment.add(task.id, task.seq, utf8(ByteArrayInputStream(bytes)))
+        case Source.Text(text) =>
+          segment.add(task.id, task.seq, StringReader(text))
+        case Source.Bytes(bytes) =>
+          segment.add(task.id, task.seq, utf8(ByteArrayInputStream(bytes)))
         case Source.Lazy(open) =>
           val in = open()
           try segment.add(task.id, task.seq, utf8(in))
@@ -158,7 +164,7 @@ final class IndexBuilder[Id](
 
   private def fail(id: Id, exc: Throwable): Unit =
     onError match
-      case None => failures.add(id -> exc)
+      case None          => failures.add(id -> exc)
       case Some(handler) =>
         try handler(id, exc)
         catch case NonFatal(handlerExc) => failures.add(id -> handlerExc)
@@ -170,7 +176,7 @@ final class IndexBuilder[Id](
     // None tells a worker there are no more tasks
     private val queue    = LinkedBlockingQueue[Option[Task[Id]]]()
     private val segments = Array.fill(parallelism)(SegmentBuilder[Id]())
-    private val threads = segments.zipWithIndex.map: (segment, idx) =>
+    private val threads  = segments.zipWithIndex.map: (segment, idx) =>
       val thread = Thread(() => run(segment), s"trigs-indexer-$idx")
       thread.setDaemon(true)
       thread.start()

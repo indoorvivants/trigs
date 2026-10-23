@@ -1,11 +1,7 @@
 package trigs
 
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.InputStream
-import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
-import java.util.zip.ZipOutputStream
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
+import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
 
 class IndexBuilderTest         extends IndexBuilderSuite(parallelism = 1)
 class ParallelIndexBuilderTest extends IndexBuilderSuite(parallelism = 4)
@@ -28,8 +24,9 @@ abstract class IndexBuilderSuite(parallelism: Int) extends munit.FunSuite:
 
   test("InputStream: UTF-8, read to the end but not closed") {
     var closed = false
-    val in = new ByteArrayInputStream("über straße\nnaïve café".getBytes("UTF-8")):
-      override def close(): Unit = closed = true
+    val in     =
+      new ByteArrayInputStream("über straße\nnaïve café".getBytes("UTF-8")):
+        override def close(): Unit = closed = true
 
     val index = newBuilder[Int]().add(1, in).result()
 
@@ -43,8 +40,8 @@ abstract class IndexBuilderSuite(parallelism: Int) extends munit.FunSuite:
     val zip = ByteArrayOutputStream()
     val out = ZipOutputStream(zip)
     for (name, text) <- List(
-        "a/One.scala"  -> "object One:\n  def search = 1",
-        "b/Two.scala"  -> "object Two",
+        "a/One.scala"   -> "object One:\n  def search = 1",
+        "b/Two.scala"   -> "object Two",
         "c/Three.scala" -> "// searching\nobject Three"
       )
     do
@@ -62,7 +59,10 @@ abstract class IndexBuilderSuite(parallelism: Int) extends munit.FunSuite:
     zis.close()
 
     val index = builder.result()
-    assertEquals(index.ids.toSet, Set("a/One.scala", "b/Two.scala", "c/Three.scala"))
+    assertEquals(
+      index.ids.toSet,
+      Set("a/One.scala", "b/Two.scala", "c/Three.scala")
+    )
     assertEquals(
       index.search("search", 10).map(h => h.id -> h.line).toSet,
       Set("a/One.scala" -> 2, "c/Three.scala" -> 1)
@@ -92,7 +92,7 @@ abstract class IndexBuilderSuite(parallelism: Int) extends munit.FunSuite:
   test("a failed read keeps the previous document") {
     val failing = new InputStream:
       private var sent = false
-      def read(): Int =
+      def read(): Int  =
         if sent then throw java.io.IOException("broken")
         sent = true
         'x'
@@ -110,7 +110,8 @@ abstract class IndexBuilderSuite(parallelism: Int) extends munit.FunSuite:
   }
 
   test("merge: later indexes win for the same id") {
-    val first  = newBuilder[String]().add("a", "old text").add("b", "kept text").result()
+    val first =
+      newBuilder[String]().add("a", "old text").add("b", "kept text").result()
     val second = newBuilder[String]().add("a", "new text").result()
 
     val merged = TrigramIndex.merge(Seq(first, second))

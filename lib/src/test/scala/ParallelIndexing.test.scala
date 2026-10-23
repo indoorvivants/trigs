@@ -1,7 +1,6 @@
 package trigs
 
-import java.nio.file.Files
-import java.nio.file.Path
+import java.nio.file.{Files, Path}
 import java.util.concurrent.ConcurrentLinkedQueue
 import scala.jdk.CollectionConverters.*
 
@@ -36,16 +35,19 @@ class ParallelIndexingTest extends munit.FunSuite:
     assertEquals(obtained.entries, expected.entries, clue)
     assertEquals(obtained.ids.toSet, expected.ids.toSet, clue)
 
-  files.test("addLazy matches sequential indexing at any parallelism") { files =>
-    val expected = sequential(files)
+  files.test("addLazy matches sequential indexing at any parallelism") {
+    files =>
+      val expected = sequential(files)
 
-    for parallelism <- List(1, 3, 8) do
-      val indexed = ConcurrentLinkedQueue[Path]()
-      val builder = IndexBuilder[Path](parallelism, onIndexed = indexed.add)
-      files.foreach(file => builder.addLazy(file, () => Files.newInputStream(file)))
+      for parallelism <- List(1, 3, 8) do
+        val indexed = ConcurrentLinkedQueue[Path]()
+        val builder = IndexBuilder[Path](parallelism, onIndexed = indexed.add)
+        files.foreach(file =>
+          builder.addLazy(file, () => Files.newInputStream(file))
+        )
 
-      assertSame(builder.result(), expected, s"parallelism = $parallelism")
-      assertEquals(indexed.asScala.toSet, files.toSet)
+        assertSame(builder.result(), expected, s"parallelism = $parallelism")
+        assertEquals(indexed.asScala.toSet, files.toSet)
   }
 
   test("the last add or remove of an id wins across workers") {
@@ -72,7 +74,7 @@ class ParallelIndexingTest extends munit.FunSuite:
 
   test("failures go to onError and keep the previous document") {
     for parallelism <- List(1, 4) do
-      val errors = ConcurrentLinkedQueue[String]()
+      val errors  = ConcurrentLinkedQueue[String]()
       val builder = IndexBuilder[String](
         parallelism,
         onError = Some((id, _) => errors.add(id))
@@ -82,7 +84,11 @@ class ParallelIndexingTest extends munit.FunSuite:
       builder.addLazy("b", () => throw java.io.IOException("can't open"))
 
       val index = builder.result()
-      assertEquals(errors.asScala.toSet, Set("a", "b"), s"parallelism = $parallelism")
+      assertEquals(
+        errors.asScala.toSet,
+        Set("a", "b"),
+        s"parallelism = $parallelism"
+      )
       assertEquals(index.search("original", 1).map(_.id), List("a"))
       assertEquals(index.ids, List("a"))
   }

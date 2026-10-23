@@ -10,7 +10,10 @@ class TrigramIndexSerialiserTest extends munit.FunSuite:
       ByteArrayInputStream(TrigramIndexSerialiser.serialise(index))
     )
 
-  private def assertSame[Id](obtained: TrigramIndex[Id], expected: TrigramIndex[Id]) =
+  private def assertSame[Id](
+      obtained: TrigramIndex[Id],
+      expected: TrigramIndex[Id]
+  ) =
     assertEquals(obtained.entries, expected.entries)
     assertEquals(obtained.ids, expected.ids)
 
@@ -36,7 +39,7 @@ class TrigramIndexSerialiserTest extends munit.FunSuite:
       .result()
 
     val serialised = TrigramIndexSerialiser.serialise(index)
-    val reloaded =
+    val reloaded   =
       TrigramIndex.deserialise[String](ByteArrayInputStream(serialised))
 
     assertSame(reloaded, index)
@@ -46,7 +49,7 @@ class TrigramIndexSerialiserTest extends munit.FunSuite:
     )
 
     // the path is written once, not once per line
-    val pathBytes = path.getBytes("UTF-8")
+    val pathBytes   = path.getBytes("UTF-8")
     val occurrences =
       serialised.indices.count(i => serialised.startsWith(pathBytes, i))
     assertEquals(occurrences, 1)

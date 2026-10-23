@@ -5,7 +5,10 @@ class RankingTest extends munit.FunSuite:
 
   /** An index with a single document "test" made of `lines` */
   private def build(lines: String*): Index =
-    Index(IndexBuilder[String]().add("test", lines.mkString("\n")).result(), lines)
+    Index(
+      IndexBuilder[String]().add("test", lines.mkString("\n")).result(),
+      lines
+    )
 
   private case class Index(index: TrigramIndex[String], lines: Seq[String]):
     def ranked(query: String): Seq[Int] =
@@ -47,7 +50,9 @@ class RankingTest extends munit.FunSuite:
 
     val merged = TrigramIndex.merge(
       Seq(
-        IndexBuilder[String]().add("kept", "searchable plus noise words").result(),
+        IndexBuilder[String]()
+          .add("kept", "searchable plus noise words")
+          .result(),
         IndexBuilder[String]().add("other", "searchable here").result()
       )
     )
@@ -153,7 +158,8 @@ class RankingTest extends munit.FunSuite:
 
   test("withRanking changes the ranking used by search") {
     val index = build("def research()", "def search()")
-    val lines = (_: String, line: Int) => Seq("def research()", "def search()").lift(line - 1)
+    val lines = (_: String, line: Int) =>
+      Seq("def research()", "def search()").lift(line - 1)
 
     // without word-boundary boosts or length weighting, both lines contain
     // "search" and score the same
@@ -161,7 +167,10 @@ class RankingTest extends munit.FunSuite:
       RankingConfig(wordStartBoost = 0, wholeWordBoost = 0, lengthWeight = 0)
     )
 
-    assertEquals(index.index.search("search", 10, lines).map(_.line), List(2, 1))
+    assertEquals(
+      index.index.search("search", 10, lines).map(_.line),
+      List(2, 1)
+    )
     assertEquals(
       flat.search("search", 10, lines).map(_.score).distinct.size,
       1

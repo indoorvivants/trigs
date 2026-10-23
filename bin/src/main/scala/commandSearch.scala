@@ -1,7 +1,6 @@
 package trigs
 
-import cue4s.AnsiTerminal
-import cue4s.Output
+import cue4s.{AnsiTerminal, Output}
 
 def commandSearch(cli: CLIConfig.Search) =
 
@@ -11,7 +10,8 @@ def commandSearch(cli: CLIConfig.Search) =
   val index      = TrigramIndex.read[os.Path](path.toNIO)
   val limit      = cli.limit.getOrElse(10)
 
-  val fileContents = collection.mutable.Map.empty[os.Path, Option[IndexedSeq[String]]]
+  val fileContents =
+    collection.mutable.Map.empty[os.Path, Option[IndexedSeq[String]]]
 
   def lineText(file: os.Path, line: Int): Option[String] =
     fileContents

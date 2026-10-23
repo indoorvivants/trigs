@@ -24,6 +24,8 @@ jobs:
 
       - uses: sbt/setup-sbt@v1
 
+      - run: sbt test scalafmtCheckAll 
+
       - name: Publish snapshot
         if: github.ref == 'refs/heads/main'
         run: sbt ci-release

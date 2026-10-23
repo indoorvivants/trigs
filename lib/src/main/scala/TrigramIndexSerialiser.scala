@@ -37,8 +37,8 @@ object TrigramIndexSerialiser:
     val trigramsStorageSize = sizeOf[Int] + // count
       index.postings.valuesIterator
         .map: locations =>
-          3 * sizeOf[Char] +               // trigram itself
-            sizeOf[Int] +                  // number of locations
+          3 * sizeOf[Char] +                 // trigram itself
+            sizeOf[Int] +                    // number of locations
             (locations.length * sizeOf[Int]) // location ids
         .sum
 

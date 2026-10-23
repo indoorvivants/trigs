@@ -1,7 +1,6 @@
 package trigs
 
-import java.io.BufferedInputStream
-import java.io.DataInputStream
+import java.io.{BufferedInputStream, DataInputStream}
 
 /** Reads the format written by [[TrigramIndexSerialiser]] */
 object TrigramIndexDeserialiser:
@@ -34,7 +33,7 @@ object TrigramIndexDeserialiser:
 
     progress.info("reading trigrams index")
     val locationTrigrams = new Array[Int](numLocations)
-    val postings = Map.from:
+    val postings         = Map.from:
       Iterator.fill(ds.readInt()):
         val trigram   = Trigram(ds.readChar(), ds.readChar(), ds.readChar())
         val locations = Array.fill(ds.readInt())(ds.readInt())

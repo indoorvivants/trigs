@@ -1,12 +1,10 @@
 package trigs
 
-import java.io.BufferedReader
-import java.io.Reader
-import scala.collection.immutable
-import scala.collection.mutable
+import java.io.{BufferedReader, Reader}
+import scala.collection.{immutable, mutable}
 
-/** A snapshot of a [[SegmentBuilder]]: an index of every document it was
-  * given, with the sequence number of each add and whether it succeeded.
+/** A snapshot of a [[SegmentBuilder]]: an index of every document it was given,
+  * with the sequence number of each add and whether it succeeded.
   * [[IndexBuilder]] decides which documents survive.
   */
 private[trigs] final case class Segment[Id](
@@ -33,8 +31,8 @@ private[trigs] final class SegmentBuilder[Id]:
   // location numbers only increase, so every list is sorted
   private val postings = mutable.HashMap.empty[Trigram, IntBuffer]
 
-  /** Indexes the lines of `reader`. If reading throws, the document is kept
-    * but not marked as succeeded.
+  /** Indexes the lines of `reader`. If reading throws, the document is kept but
+    * not marked as succeeded.
     */
   def add(id: Id, seq: Long, reader: Reader): Unit =
     val document = documents.length

@@ -1,13 +1,12 @@
 package trigs
 
 import java.io.InputStream
-import java.nio.file.Files
-import java.nio.file.Path
+import java.nio.file.{Files, Path}
 import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
 
-/** Immutable trigram index over the lines of documents identified by `Id`.
-  * Safe to search from multiple threads. Build one with [[IndexBuilder]].
+/** Immutable trigram index over the lines of documents identified by `Id`. Safe
+  * to search from multiple threads. Build one with [[IndexBuilder]].
   *
   * Internally every indexed line is a location, numbered from 0; arrays below
   * are indexed by location, and postings hold sorted location numbers.
@@ -85,7 +84,13 @@ end TrigramIndex
 
 object TrigramIndex:
   def empty[Id]: TrigramIndex[Id] =
-    new TrigramIndex(Vector.empty, Array.empty, Array.empty, Array.empty, Map.empty)
+    new TrigramIndex(
+      Vector.empty,
+      Array.empty,
+      Array.empty,
+      Array.empty,
+      Map.empty
+    )
 
   def read[Id: IdCodec](path: Path)(using Progress): TrigramIndex[Id] =
     val in = Files.newInputStream(path)
@@ -156,7 +161,9 @@ object TrigramIndex:
       locationDocument.toArray,
       locationLine.toArray,
       locationTrigrams.toArray,
-      postings.iterator.map((trigram, locations) => trigram -> locations.toArray).toMap
+      postings.iterator
+        .map((trigram, locations) => trigram -> locations.toArray)
+        .toMap
     )
   end compact
 end TrigramIndex

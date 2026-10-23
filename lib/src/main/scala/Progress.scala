@@ -10,36 +10,36 @@ trait Progress:
   def warn(msg: String): Unit
   def error(msg: String, exc: Throwable): Unit
   def close(): Unit
-  def setMinLevel(level: Level): Progress = 
+  def setMinLevel(level: Level): Progress =
     level match
-      case Level.Debug => 
+      case Level.Debug =>
         this
       case Level.Info =>
         val old = this
         new Progress:
-          export old.{debug => _, *}
+          export old.{debug as _, *}
           override def debug(msg: => String): Unit = ()
 
       case Level.Warn =>
         val old = this
         new Progress:
-          export old.{debug => _, info => _, *}
+          export old.{debug as _, info as _, *}
           override def debug(msg: => String): Unit = ()
-          override def info(msg: String): Unit = ()
+          override def info(msg: String): Unit     = ()
       case trigs.Level.Error =>
         val old = this
         new Progress:
-          export old.{debug => _, info => _, warn => _, *}
+          export old.{debug as _, info as _, warn as _, *}
           override def debug(msg: => String): Unit = ()
-          override def info(msg: String): Unit = ()
-          override def warn(msg: String): Unit = ()
-    
+          override def info(msg: String): Unit     = ()
+          override def warn(msg: String): Unit     = ()
+end Progress
 
 object Progress:
   object Quiet extends Progress:
     override def info(msg: String): Unit                  = ()
-    override def debug(msg: => String): Unit                 = ()
-    override def warn(msg: String): Unit                 = ()
+    override def debug(msg: => String): Unit              = ()
+    override def warn(msg: String): Unit                  = ()
     override def error(msg: String, exc: Throwable): Unit = ()
     override def error(msg: String): Unit                 = ()
     override def close(): Unit                            = ()
